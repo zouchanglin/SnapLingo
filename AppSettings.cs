@@ -12,6 +12,20 @@ public class ModelConfig
     public string Model { get; set; } = "qwen-plus";
 }
 
+public class OcrServiceConfig
+{
+    public string Name { get; set; } = "";
+    public string Provider { get; set; } = OcrProvider.Windows;
+    public string VolcengineAccessKeyId { get; set; } = "";
+    public string VolcengineSecretAccessKey { get; set; } = "";
+}
+
+public static class OcrProvider
+{
+    public const string Windows = "Windows";
+    public const string Volcengine = "Volcengine";
+}
+
 public class AppSettings
 {
     public const string DefaultTranslationPrompt = """
@@ -25,6 +39,8 @@ public class AppSettings
         """;
 
     public List<ModelConfig> Models { get; set; } = new();
+    public List<OcrServiceConfig> OcrServices { get; set; } = new();
+    public int ActiveOcrIndex { get; set; } = 0;
     public string TranslationPrompt { get; set; } = DefaultTranslationPrompt;
     public uint HotkeyModifiers { get; set; } = 0x0006; // Ctrl+Shift
     public uint HotkeyKey { get; set; } = 0x41; // A
@@ -33,6 +49,7 @@ public class AppSettings
     public string? ApiKey { get; set; }
     public string? Endpoint { get; set; }
     public string? Model { get; set; }
+    public OcrProviderConfig? Ocr { get; set; }
 
     private static readonly string SettingsDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SnapLingo");
@@ -69,8 +86,48 @@ public class AppSettings
             ApiKey = null;
             Endpoint = null;
             Model = null;
-            Save();
         }
+
+        if (Ocr != null && OcrServices.Count == 0)
+        {
+            if (Ocr.Provider == OcrProvider.Volcengine)
+            {
+                OcrServices.Add(new OcrServiceConfig
+                {
+                    Name = "火山引擎 OCR",
+                    Provider = OcrProvider.Volcengine,
+                    VolcengineAccessKeyId = Ocr.VolcengineAccessKeyId,
+                    VolcengineSecretAccessKey = Ocr.VolcengineSecretAccessKey
+                });
+            }
+            else
+            {
+                OcrServices.Add(new OcrServiceConfig
+                {
+                    Name = "Windows 本地 OCR",
+                    Provider = OcrProvider.Windows
+                });
+            }
+            Ocr = null;
+        }
+
+        if (OcrServices.Count == 0)
+        {
+            OcrServices.Add(new OcrServiceConfig
+            {
+                Name = "Windows 本地 OCR",
+                Provider = OcrProvider.Windows
+            });
+        }
+
+        Save();
+    }
+
+    public OcrServiceConfig GetActiveOcr()
+    {
+        if (ActiveOcrIndex >= 0 && ActiveOcrIndex < OcrServices.Count)
+            return OcrServices[ActiveOcrIndex];
+        return OcrServices.Count > 0 ? OcrServices[0] : new OcrServiceConfig();
     }
 
     public void Save()
@@ -97,4 +154,12 @@ public class AppSettings
         parts.Add(key.ToString());
         return string.Join("+", parts);
     }
+}
+
+// Legacy class kept for deserialization migration
+public class OcrProviderConfig
+{
+    public string Provider { get; set; } = OcrProvider.Windows;
+    public string VolcengineAccessKeyId { get; set; } = "";
+    public string VolcengineSecretAccessKey { get; set; } = "";
 }
