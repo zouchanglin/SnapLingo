@@ -1,0 +1,85 @@
+<Window x:Class="SnapLingo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="SnapLingo" Width="620"
+        SizeToContent="Height"
+        MaxHeight="800"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize">
+    <Border Background="{StaticResource BackgroundBrush}" CornerRadius="8"
+            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="2" Opacity="0.08" Color="Black"/>
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="36"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Minimal drag bar -->
+            <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}"
+                    CornerRadius="8,8,0,0" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <DockPanel Margin="16,0,8,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="&#x26A1;" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <TextBlock x:Name="TxtStatus" FontSize="12"
+                                   Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"
+                                   Text="就绪"/>
+                    </StackPanel>
+                    <Button Content="&#x2715;" Style="{StaticResource CloseButton}"
+                            Click="BtnClose_Click" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                </DockPanel>
+            </Border>
+            <Rectangle Grid.Row="0" Height="1" VerticalAlignment="Bottom"
+                       Fill="{StaticResource BorderBrush}"/>
+
+            <!-- Main Content -->
+            <Grid Grid.Row="1" Margin="16,12,16,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- OCR Result Card -->
+                <Border Grid.Row="0" CornerRadius="8" MaxHeight="450"
+                        Background="{StaticResource CardBrush}"
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0" Margin="14,8,10,0">
+                            <TextBlock Text="识别结果" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       VerticalAlignment="Center"/>
+                            <Button x:Name="BtnCopyOcr" Content="复制"
+                                    Style="{StaticResource GhostButton}"
+                                    Click="BtnCopyOcr_Click"
+                                    HorizontalAlignment="Right" FontSize="11"/>
+                        </DockPanel>
+                        <TextBox Grid.Row="1" x:Name="TxtOcrResult"
+                                 Style="{StaticResource ModernTextBox}"
+                                 IsReadOnly="True" TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 BorderThickness="0" Margin="6,4,6,6"/>
+                    </Grid>
+                </Border>
+
+                <!-- Translation Results (vertical stack) -->
+                <ItemsControl Grid.Row="2" x:Name="TranslationCards">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
