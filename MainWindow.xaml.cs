@@ -136,6 +136,20 @@ public partial class MainWindow : Window
         return IntPtr.Zero;
     }
 
+    private async void TxtOcrResult_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            var text = TxtOcrResult.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                TxtStatus.Text = "正在翻译...";
+                await RunAllTranslations(text);
+            }
+        }
+    }
+
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         DragMove();

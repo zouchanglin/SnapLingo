@@ -409,7 +409,7 @@ public partial class SettingsWindow : Window
 
     private void LinkAuthor_Click(object sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo("https://github.com/zouchanglin") { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo("https://github.com/zouchanglin/SnapLingo") { UseShellExecute = true });
     }
 
     // ========== Navigation ==========

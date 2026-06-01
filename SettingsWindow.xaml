@@ -316,7 +316,7 @@
                             <Run Text="作者：" Foreground="{StaticResource TextSecondaryBrush}"/>
                             <Hyperlink x:Name="LinkAuthor" Click="LinkAuthor_Click"
                                        Foreground="{StaticResource PrimaryBrush}">
-                                https://github.com/zouchanglin
+                                https://github.com/zouchanglin/SnapLingo
                             </Hyperlink>
                         </TextBlock>
                     </StackPanel>

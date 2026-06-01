@@ -65,7 +65,8 @@
                         </DockPanel>
                         <TextBox Grid.Row="1" x:Name="TxtOcrResult"
                                  Style="{StaticResource ModernTextBox}"
-                                 IsReadOnly="True" TextWrapping="Wrap"
+                                 TextWrapping="Wrap" AcceptsReturn="False"
+                                 KeyDown="TxtOcrResult_KeyDown"
                                  VerticalScrollBarVisibility="Auto"
                                  BorderThickness="0" Margin="6,4,6,6"/>
                     </Grid>
