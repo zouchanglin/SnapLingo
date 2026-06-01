@@ -20,6 +20,10 @@ Desktop.ini
 ## Test / debug
 test_stream.py
 
+## Publish / Release
+publish/
+*.zip
+
 ## Claude Code / OpenSpec
 .claude/
 openspec/

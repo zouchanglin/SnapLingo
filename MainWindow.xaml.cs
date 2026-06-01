@@ -42,7 +42,8 @@ public partial class MainWindow : Window
         RegisterCurrentHotkey();
         InitTrayIcon();
 
-        if (!_ocrService.IsAvailable)
+        var activeOcr = _settings.GetActiveOcr();
+        if (activeOcr.Provider == OcrProvider.Windows && !_ocrService.IsAvailable)
         {
             TxtStatus.Text = "OCR 不可用 — 请安装中文语言包";
         }
@@ -196,7 +197,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var text = await _ocrService.RecognizeAsync(image);
+            var text = await _ocrService.RecognizeAsync(image, _settings);
             TxtOcrResult.Text = text;
             TxtStatus.Text = string.IsNullOrWhiteSpace(text)
                 ? "未识别到文字"
