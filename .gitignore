@@ -23,6 +23,11 @@ test_stream.py
 ## Publish / Release
 publish/
 *.zip
+*.msi
+*.wixpdb
+
+## WiX build cache
+.wix/
 
 ## Claude Code / OpenSpec
 .claude/
