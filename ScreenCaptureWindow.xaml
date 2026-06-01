@@ -1,0 +1,33 @@
+<Window x:Class="SnapLingo.ScreenCaptureWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        WindowState="Maximized"
+        Cursor="None">
+    <Canvas x:Name="OverlayCanvas" Background="Transparent">
+        <!-- Dark overlay with hole for selection -->
+        <Path x:Name="OverlayPath" Fill="#80000000" IsHitTestVisible="False"/>
+        <!-- Selection border -->
+        <Rectangle x:Name="SelectionRect"
+                   Stroke="#FF1E90FF"
+                   StrokeThickness="2"
+                   Fill="Transparent"
+                   Visibility="Collapsed"/>
+        <!-- Custom crosshair cursor -->
+        <Canvas x:Name="Crosshair" IsHitTestVisible="False">
+            <!-- Horizontal line with white stroke + dark outline -->
+            <Line x:Name="CrossH1" Stroke="#AA000000" StrokeThickness="3" X1="-16" Y1="0" X2="16" Y2="0"/>
+            <Line x:Name="CrossH2" Stroke="White" StrokeThickness="1.5" X1="-16" Y1="0" X2="16" Y2="0"/>
+            <!-- Vertical line with white stroke + dark outline -->
+            <Line x:Name="CrossV1" Stroke="#AA000000" StrokeThickness="3" X1="0" Y1="-16" X2="0" Y2="16"/>
+            <Line x:Name="CrossV2" Stroke="White" StrokeThickness="1.5" X1="0" Y1="-16" X2="0" Y2="16"/>
+            <!-- Center dot -->
+            <Ellipse Width="4" Height="4" Fill="#FFFF4444" Canvas.Left="-2" Canvas.Top="-2"/>
+        </Canvas>
+    </Canvas>
+</Window>
