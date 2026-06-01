@@ -19,3 +19,7 @@ Desktop.ini
 
 ## Test / debug
 test_stream.py
+
+## Claude Code / OpenSpec
+.claude/
+openspec/
