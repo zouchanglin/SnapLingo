@@ -78,7 +78,7 @@ public partial class MainWindow : Window
         _notifyIcon.DoubleClick += (_, _) => ShowAndActivate();
     }
 
-    private void RegisterCurrentHotkey()
+    internal void RegisterCurrentHotkey()
     {
         var handle = new WindowInteropHelper(this).Handle;
         UnregisterHotKey(handle, HOTKEY_ID);
@@ -87,6 +87,12 @@ public partial class MainWindow : Window
         {
             TxtStatus.Text = "热键注册失败";
         }
+    }
+
+    internal void UnregisterCurrentHotkey()
+    {
+        var handle = new WindowInteropHelper(this).Handle;
+        UnregisterHotKey(handle, HOTKEY_ID);
     }
 
     private void OnClosed(object? sender, EventArgs e)
@@ -157,19 +163,28 @@ public partial class MainWindow : Window
 
     private void BtnClose_Click(object sender, RoutedEventArgs e) => Hide();
 
+    private SettingsWindow? _settingsWindow;
+
     private void OpenSettings()
     {
-        var handle = new WindowInteropHelper(this).Handle;
-        UnregisterHotKey(handle, HOTKEY_ID);
-
-        var settingsWindow = new SettingsWindow(_settings) { Owner = this };
-        if (settingsWindow.ShowDialog() == true && settingsWindow.Result != null)
+        if (_settingsWindow != null)
         {
-            _settings = settingsWindow.Result;
-            TxtStatus.Text = "设置已保存";
+            _settingsWindow.Activate();
+            return;
         }
 
-        RegisterCurrentHotkey();
+        _settingsWindow = new SettingsWindow(_settings);
+        _settingsWindow.Closed += (_, _) =>
+        {
+            if (_settingsWindow.Result != null)
+            {
+                _settings = _settingsWindow.Result;
+                RegisterCurrentHotkey();
+                TxtStatus.Text = "设置已保存";
+            }
+            _settingsWindow = null;
+        };
+        _settingsWindow.Show();
     }
 
     private void BtnCopyOcr_Click(object sender, RoutedEventArgs e)

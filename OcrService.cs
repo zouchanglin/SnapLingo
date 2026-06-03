@@ -56,10 +56,13 @@ public class OcrService
     public async Task<string> RecognizeAsync(BitmapSource bitmapSource, AppSettings settings)
     {
         var ocr = settings.GetActiveOcr();
-        if (ocr.Provider == OcrProvider.Volcengine)
-            return await RecognizeWithVolcengineAsync(bitmapSource, ocr);
-
-        return await RecognizeWithWindowsAsync(bitmapSource);
+        return ocr.Provider switch
+        {
+            OcrProvider.Volcengine => await RecognizeWithVolcengineAsync(bitmapSource, ocr),
+            OcrProvider.Baidu => await RecognizeWithBaiduAsync(bitmapSource, ocr),
+            OcrProvider.Tencent => await RecognizeWithTencentAsync(bitmapSource, ocr),
+            _ => await RecognizeWithWindowsAsync(bitmapSource)
+        };
     }
 
     public async Task<string> RecognizeAsync(BitmapSource bitmapSource)
@@ -120,6 +123,172 @@ public class OcrService
 
         return ParseVolcengineOcrText(responseText);
     }
+
+    // ========== Baidu OCR ==========
+
+    private static async Task<string> RecognizeWithBaiduAsync(BitmapSource bitmapSource, OcrServiceConfig config)
+    {
+        if (string.IsNullOrWhiteSpace(config.BaiduApiKey) || string.IsNullOrWhiteSpace(config.BaiduSecretKey))
+            throw new InvalidOperationException("请先在设置中配置百度 OCR 的 API Key 和 Secret Key");
+
+        var accessToken = await GetBaiduAccessToken(config.BaiduApiKey.Trim(), config.BaiduSecretKey.Trim());
+        var imageBase64 = await EncodePngBase64Async(bitmapSource);
+
+        var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["image"] = imageBase64,
+            ["detect_language"] = "true"
+        });
+
+        var url = $"https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic?access_token={accessToken}";
+        using var response = await HttpClient.PostAsync(url, content);
+        var responseText = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException($"百度 OCR 请求失败：HTTP {(int)response.StatusCode} {responseText}");
+
+        return ParseBaiduOcrText(responseText);
+    }
+
+    private static async Task<string> GetBaiduAccessToken(string apiKey, string secretKey)
+    {
+        var url = $"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={apiKey}&client_secret={secretKey}";
+        using var response = await HttpClient.PostAsync(url, null);
+        var responseText = await response.Content.ReadAsStringAsync();
+
+        using var doc = JsonDocument.Parse(responseText);
+        if (doc.RootElement.TryGetProperty("access_token", out var token))
+            return token.GetString()!;
+
+        var error = doc.RootElement.TryGetProperty("error_description", out var desc)
+            ? desc.GetString() : responseText;
+        throw new InvalidOperationException($"百度 OCR 获取 token 失败：{error}");
+    }
+
+    private static string ParseBaiduOcrText(string responseText)
+    {
+        using var doc = JsonDocument.Parse(responseText);
+        var root = doc.RootElement;
+
+        if (root.TryGetProperty("error_code", out var errCode))
+        {
+            var msg = root.TryGetProperty("error_msg", out var errMsg) ? errMsg.GetString() : responseText;
+            throw new InvalidOperationException($"百度 OCR 返回错误：{errCode} {msg}");
+        }
+
+        if (!root.TryGetProperty("words_result", out var words) || words.ValueKind != JsonValueKind.Array)
+            return string.Empty;
+
+        var lines = new List<string>();
+        foreach (var item in words.EnumerateArray())
+        {
+            if (item.TryGetProperty("words", out var w))
+            {
+                var text = w.GetString();
+                if (!string.IsNullOrWhiteSpace(text))
+                    lines.Add(text);
+            }
+        }
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    // ========== Tencent OCR ==========
+
+    private static async Task<string> RecognizeWithTencentAsync(BitmapSource bitmapSource, OcrServiceConfig config)
+    {
+        if (string.IsNullOrWhiteSpace(config.TencentSecretId) || string.IsNullOrWhiteSpace(config.TencentSecretKey))
+            throw new InvalidOperationException("请先在设置中配置腾讯云 OCR 的 SecretId 和 SecretKey");
+
+        var imageBase64 = await EncodePngBase64Async(bitmapSource);
+        var body = JsonSerializer.Serialize(new { ImageBase64 = imageBase64 });
+
+        var now = DateTimeOffset.UtcNow;
+        var timestamp = now.ToUnixTimeSeconds().ToString();
+        var date = now.ToString("yyyy-MM-dd");
+
+        var authorization = CreateTencentAuthorization(
+            config.TencentSecretId.Trim(),
+            config.TencentSecretKey.Trim(),
+            timestamp, date, body);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://ocr.tencentcloudapi.com/");
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+        request.Headers.TryAddWithoutValidation("Authorization", authorization);
+        request.Headers.TryAddWithoutValidation("X-TC-Action", "GeneralBasicOCR");
+        request.Headers.TryAddWithoutValidation("X-TC-Version", "2018-11-19");
+        request.Headers.TryAddWithoutValidation("X-TC-Timestamp", timestamp);
+        request.Headers.TryAddWithoutValidation("X-TC-Region", "ap-beijing");
+
+        using var response = await HttpClient.SendAsync(request);
+        var responseText = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException($"腾讯云 OCR 请求失败：HTTP {(int)response.StatusCode} {responseText}");
+
+        return ParseTencentOcrText(responseText);
+    }
+
+    private static string CreateTencentAuthorization(
+        string secretId, string secretKey,
+        string timestamp, string date, string body)
+    {
+        const string service = "ocr";
+        const string host = "ocr.tencentcloudapi.com";
+
+        var canonicalHeaders = $"content-type:application/json; charset=utf-8\nhost:{host}\n";
+        const string signedHeaders = "content-type;host";
+        var canonicalRequest = string.Join("\n", new[]
+        {
+            "POST", "/", "", canonicalHeaders, signedHeaders, Sha256Hex(body)
+        });
+
+        var credentialScope = $"{date}/{service}/tc3_request";
+        var stringToSign = string.Join("\n", new[]
+        {
+            "TC3-HMAC-SHA256", timestamp, credentialScope, Sha256Hex(canonicalRequest)
+        });
+
+        var secretDate = HmacSha256(Encoding.UTF8.GetBytes("TC3" + secretKey), date);
+        var secretService = HmacSha256(secretDate, service);
+        var secretSigning = HmacSha256(secretService, "tc3_request");
+        var signature = ToHex(HmacSha256(secretSigning, stringToSign));
+
+        return $"TC3-HMAC-SHA256 Credential={secretId}/{credentialScope}, SignedHeaders={signedHeaders}, Signature={signature}";
+    }
+
+    private static string ParseTencentOcrText(string responseText)
+    {
+        using var doc = JsonDocument.Parse(responseText);
+        var root = doc.RootElement;
+
+        if (root.TryGetProperty("Response", out var resp))
+        {
+            if (resp.TryGetProperty("Error", out var error))
+            {
+                var msg = error.TryGetProperty("Message", out var m) ? m.GetString() : responseText;
+                throw new InvalidOperationException($"腾讯云 OCR 返回错误：{msg}");
+            }
+
+            if (resp.TryGetProperty("TextDetections", out var detections) &&
+                detections.ValueKind == JsonValueKind.Array)
+            {
+                var lines = new List<string>();
+                foreach (var item in detections.EnumerateArray())
+                {
+                    if (item.TryGetProperty("DetectedText", out var t))
+                    {
+                        var text = t.GetString();
+                        if (!string.IsNullOrWhiteSpace(text))
+                            lines.Add(text);
+                    }
+                }
+                return string.Join(Environment.NewLine, lines);
+            }
+        }
+        return string.Empty;
+    }
+
+    // ========== Volcengine Helpers ==========
 
     private static string CreateVolcengineAuthorization(
         string accessKeyId,

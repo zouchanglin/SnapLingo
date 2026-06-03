@@ -29,5 +29,27 @@
             <!-- Center dot -->
             <Ellipse Width="4" Height="4" Fill="#FFFF4444" Canvas.Left="-2" Canvas.Top="-2"/>
         </Canvas>
+        <!-- Magnifier -->
+        <Canvas x:Name="MagnifierCanvas" IsHitTestVisible="False" Visibility="Visible">
+            <Border x:Name="MagnifierBorder" Width="150" Height="93"
+                    CornerRadius="4" BorderBrush="#CC1E90FF" BorderThickness="2"
+                    ClipToBounds="True" Background="Black">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.3"/>
+                </Border.Effect>
+                <Image x:Name="MagnifierImage" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+            </Border>
+            <!-- Magnifier crosshair -->
+            <Line Stroke="#661E90FF" StrokeThickness="1" X1="75" Y1="32" X2="75" Y2="42"/>
+            <Line Stroke="#661E90FF" StrokeThickness="1" X1="75" Y1="51" X2="75" Y2="61"/>
+            <Line Stroke="#661E90FF" StrokeThickness="1" X1="60" Y1="46.5" X2="70" Y2="46.5"/>
+            <Line Stroke="#661E90FF" StrokeThickness="1" X1="80" Y1="46.5" X2="90" Y2="46.5"/>
+            <!-- Coordinate text -->
+            <Border x:Name="MagnifierCoordBorder" Canvas.Top="97" Canvas.Left="25"
+                    Background="#CC000000" CornerRadius="3" Padding="6,2">
+                <TextBlock x:Name="TxtMagnifierCoord" Foreground="White" FontSize="11"
+                           FontFamily="Consolas" Text="0, 0"/>
+            </Border>
+        </Canvas>
     </Canvas>
 </Window>
