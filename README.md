@@ -18,13 +18,7 @@
 
 ## 安装
 
-### 安装包（推荐）
-
-下载 [最新 Release](https://github.com/zouchanglin/SnapLingo/releases) 中的 `SnapLingo-vX.X.X-setup.msi`，双击安装，支持自定义安装路径。
-
-### 便携版
-
-下载 Release 中的 `SnapLingo-vX.X.X-win-x64.zip`，解压后运行 `SnapLingo.exe`。
+下载 [最新 Release](https://github.com/zouchanglin/SnapLingo/releases) 中的 `SnapLingo-vX.X.X-win-x64.zip`，解压后运行 `SnapLingo.exe` 即可。
 
 ## 使用说明
 
@@ -36,12 +30,12 @@
 ## 系统要求
 
 - Windows 10 1903+ / Windows 11
-- .NET 8 运行时（安装包已内置，无需单独安装）
+- [.NET 8 Desktop 运行时](https://dotnet.microsoft.com/download/dotnet/8.0)
 
 ## 构建
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained
+dotnet publish -c Release -r win-x64 --no-self-contained
 ```
 
 ## 开源协议
