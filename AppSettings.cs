@@ -18,12 +18,18 @@ public class OcrServiceConfig
     public string Provider { get; set; } = OcrProvider.Windows;
     public string VolcengineAccessKeyId { get; set; } = "";
     public string VolcengineSecretAccessKey { get; set; } = "";
+    public string BaiduApiKey { get; set; } = "";
+    public string BaiduSecretKey { get; set; } = "";
+    public string TencentSecretId { get; set; } = "";
+    public string TencentSecretKey { get; set; } = "";
 }
 
 public static class OcrProvider
 {
     public const string Windows = "Windows";
     public const string Volcengine = "Volcengine";
+    public const string Baidu = "Baidu";
+    public const string Tencent = "Tencent";
 }
 
 public class AppSettings
@@ -44,6 +50,7 @@ public class AppSettings
     public string TranslationPrompt { get; set; } = DefaultTranslationPrompt;
     public uint HotkeyModifiers { get; set; } = 0x0006; // Ctrl+Shift
     public uint HotkeyKey { get; set; } = 0x41; // A
+    public bool AutoStart { get; set; } = false;
 
     // Legacy fields for migration
     public string? ApiKey { get; set; }

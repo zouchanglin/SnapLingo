@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Win32;
 
 namespace SnapLingo;
 
@@ -34,7 +35,11 @@ public partial class SettingsWindow : Window
             Name = o.Name,
             Provider = o.Provider,
             VolcengineAccessKeyId = o.VolcengineAccessKeyId,
-            VolcengineSecretAccessKey = o.VolcengineSecretAccessKey
+            VolcengineSecretAccessKey = o.VolcengineSecretAccessKey,
+            BaiduApiKey = o.BaiduApiKey,
+            BaiduSecretKey = o.BaiduSecretKey,
+            TencentSecretId = o.TencentSecretId,
+            TencentSecretKey = o.TencentSecretKey
         }).ToList();
         _activeOcrIndex = settings.ActiveOcrIndex;
 
@@ -42,6 +47,7 @@ public partial class SettingsWindow : Window
         _hotkeyKey = settings.HotkeyKey;
         TxtHotkey.Text = settings.GetHotkeyDisplayString();
         TxtPrompt.Text = settings.TranslationPrompt;
+        ChkAutoStart.IsChecked = settings.AutoStart;
 
         RefreshModelList();
         if (_models.Count > 0)
@@ -196,6 +202,14 @@ public partial class SettingsWindow : Window
         TxtOcrAccessKeyId.Text = o.VolcengineAccessKeyId;
         PwdOcrSecretKey.Password = o.VolcengineSecretAccessKey;
         TxtOcrSecretKey.Text = o.VolcengineSecretAccessKey;
+        PwdBaiduApiKey.Password = o.BaiduApiKey;
+        TxtBaiduApiKey.Text = o.BaiduApiKey;
+        PwdBaiduSecretKey.Password = o.BaiduSecretKey;
+        TxtBaiduSecretKey.Text = o.BaiduSecretKey;
+        PwdTencentSecretId.Password = o.TencentSecretId;
+        TxtTencentSecretId.Text = o.TencentSecretId;
+        PwdTencentSecretKey.Password = o.TencentSecretKey;
+        TxtTencentSecretKey.Text = o.TencentSecretKey;
         _suppressSync = false;
         UpdateOcrProviderVisibility();
     }
@@ -209,6 +223,14 @@ public partial class SettingsWindow : Window
         TxtOcrAccessKeyId.Text = "";
         PwdOcrSecretKey.Password = "";
         TxtOcrSecretKey.Text = "";
+        PwdBaiduApiKey.Password = "";
+        TxtBaiduApiKey.Text = "";
+        PwdBaiduSecretKey.Password = "";
+        TxtBaiduSecretKey.Text = "";
+        PwdTencentSecretId.Password = "";
+        TxtTencentSecretId.Text = "";
+        PwdTencentSecretKey.Password = "";
+        TxtTencentSecretKey.Text = "";
         _suppressSync = false;
         UpdateOcrProviderVisibility();
     }
@@ -223,11 +245,20 @@ public partial class SettingsWindow : Window
         o.Name = TxtOcrName.Text.Trim();
         o.VolcengineAccessKeyId = TxtOcrAccessKeyId.Text.Trim();
         o.VolcengineSecretAccessKey = TxtOcrSecretKey.Text.Trim();
+        o.BaiduApiKey = TxtBaiduApiKey.Text.Trim();
+        o.BaiduSecretKey = TxtBaiduSecretKey.Text.Trim();
+        o.TencentSecretId = TxtTencentSecretId.Text.Trim();
+        o.TencentSecretKey = TxtTencentSecretKey.Text.Trim();
 
-        _suppressSync = true;
-        var name = string.IsNullOrWhiteSpace(o.Name) ? "(未命名)" : o.Name;
-        LstOcr.Items[idx] = idx == _activeOcrIndex ? $"★ {name}" : name;
-        _suppressSync = false;
+        if (sender == TxtOcrName)
+        {
+            _suppressSync = true;
+            var selectedIdx = LstOcr.SelectedIndex;
+            var name = string.IsNullOrWhiteSpace(o.Name) ? "(未命名)" : o.Name;
+            LstOcr.Items[idx] = idx == _activeOcrIndex ? $"★ {name}" : name;
+            LstOcr.SelectedIndex = selectedIdx;
+            _suppressSync = false;
+        }
     }
 
     private void PwdOcrAccessKeyId_Changed(object sender, RoutedEventArgs e)
@@ -278,6 +309,104 @@ public partial class SettingsWindow : Window
         TxtOcrSecretKey.Visibility = Visibility.Collapsed;
     }
 
+    // Baidu
+    private void PwdBaiduApiKey_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressSync) return;
+        var idx = LstOcr.SelectedIndex;
+        if (idx < 0 || idx >= _ocrServices.Count) return;
+        _ocrServices[idx].BaiduApiKey = PwdBaiduApiKey.Password;
+        _suppressSync = true;
+        TxtBaiduApiKey.Text = PwdBaiduApiKey.Password;
+        _suppressSync = false;
+    }
+
+    private void PwdBaiduSecretKey_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressSync) return;
+        var idx = LstOcr.SelectedIndex;
+        if (idx < 0 || idx >= _ocrServices.Count) return;
+        _ocrServices[idx].BaiduSecretKey = PwdBaiduSecretKey.Password;
+        _suppressSync = true;
+        TxtBaiduSecretKey.Text = PwdBaiduSecretKey.Password;
+        _suppressSync = false;
+    }
+
+    private void ShowBaiduApiKey_Down(object sender, MouseButtonEventArgs e)
+    {
+        TxtBaiduApiKey.Text = PwdBaiduApiKey.Password;
+        PwdBaiduApiKey.Visibility = Visibility.Collapsed;
+        TxtBaiduApiKey.Visibility = Visibility.Visible;
+    }
+
+    private void ShowBaiduApiKey_Up(object sender, MouseButtonEventArgs e)
+    {
+        PwdBaiduApiKey.Visibility = Visibility.Visible;
+        TxtBaiduApiKey.Visibility = Visibility.Collapsed;
+    }
+
+    private void ShowBaiduSecretKey_Down(object sender, MouseButtonEventArgs e)
+    {
+        TxtBaiduSecretKey.Text = PwdBaiduSecretKey.Password;
+        PwdBaiduSecretKey.Visibility = Visibility.Collapsed;
+        TxtBaiduSecretKey.Visibility = Visibility.Visible;
+    }
+
+    private void ShowBaiduSecretKey_Up(object sender, MouseButtonEventArgs e)
+    {
+        PwdBaiduSecretKey.Visibility = Visibility.Visible;
+        TxtBaiduSecretKey.Visibility = Visibility.Collapsed;
+    }
+
+    // Tencent
+    private void PwdTencentSecretId_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressSync) return;
+        var idx = LstOcr.SelectedIndex;
+        if (idx < 0 || idx >= _ocrServices.Count) return;
+        _ocrServices[idx].TencentSecretId = PwdTencentSecretId.Password;
+        _suppressSync = true;
+        TxtTencentSecretId.Text = PwdTencentSecretId.Password;
+        _suppressSync = false;
+    }
+
+    private void PwdTencentSecretKey_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressSync) return;
+        var idx = LstOcr.SelectedIndex;
+        if (idx < 0 || idx >= _ocrServices.Count) return;
+        _ocrServices[idx].TencentSecretKey = PwdTencentSecretKey.Password;
+        _suppressSync = true;
+        TxtTencentSecretKey.Text = PwdTencentSecretKey.Password;
+        _suppressSync = false;
+    }
+
+    private void ShowTencentSecretId_Down(object sender, MouseButtonEventArgs e)
+    {
+        TxtTencentSecretId.Text = PwdTencentSecretId.Password;
+        PwdTencentSecretId.Visibility = Visibility.Collapsed;
+        TxtTencentSecretId.Visibility = Visibility.Visible;
+    }
+
+    private void ShowTencentSecretId_Up(object sender, MouseButtonEventArgs e)
+    {
+        PwdTencentSecretId.Visibility = Visibility.Visible;
+        TxtTencentSecretId.Visibility = Visibility.Collapsed;
+    }
+
+    private void ShowTencentSecretKey_Down(object sender, MouseButtonEventArgs e)
+    {
+        TxtTencentSecretKey.Text = PwdTencentSecretKey.Password;
+        PwdTencentSecretKey.Visibility = Visibility.Collapsed;
+        TxtTencentSecretKey.Visibility = Visibility.Visible;
+    }
+
+    private void ShowTencentSecretKey_Up(object sender, MouseButtonEventArgs e)
+    {
+        PwdTencentSecretKey.Visibility = Visibility.Visible;
+        TxtTencentSecretKey.Visibility = Visibility.Collapsed;
+    }
+
     private void SelectOcrProvider(string provider)
     {
         foreach (ComboBoxItem item in CmbOcrProvider.Items)
@@ -307,9 +436,9 @@ public partial class SettingsWindow : Window
     {
         if (PanelVolcengineOcr == null) return;
         var provider = (CmbOcrProvider.SelectedItem as ComboBoxItem)?.Tag?.ToString();
-        PanelVolcengineOcr.Visibility = provider == OcrProvider.Volcengine
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        PanelVolcengineOcr.Visibility = provider == OcrProvider.Volcengine ? Visibility.Visible : Visibility.Collapsed;
+        PanelBaiduOcr.Visibility = provider == OcrProvider.Baidu ? Visibility.Visible : Visibility.Collapsed;
+        PanelTencentOcr.Visibility = provider == OcrProvider.Tencent ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void BtnAddOcr_Click(object sender, RoutedEventArgs e)
@@ -351,11 +480,22 @@ public partial class SettingsWindow : Window
         Process.Start(new ProcessStartInfo("https://console.volcengine.com/ai/ability/info/78") { UseShellExecute = true });
     }
 
+    private void LinkBaidu_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo("https://console.bce.baidu.com/ai/#/ai/ocr/overview/index") { UseShellExecute = true });
+    }
+
+    private void LinkTencent_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo("https://console.cloud.tencent.com/cam/capi") { UseShellExecute = true });
+    }
+
     // ========== Hotkey ==========
 
     private void TxtHotkey_MouseDown(object sender, MouseButtonEventArgs e)
     {
         _isRecordingHotkey = true;
+        if (Application.Current.MainWindow is MainWindow main) main.UnregisterCurrentHotkey();
         TxtHotkey.Text = "请按下快捷键组合...";
         TxtHotkey.Focus();
         e.Handled = true;
@@ -364,6 +504,7 @@ public partial class SettingsWindow : Window
     private void TxtHotkey_LostFocus(object sender, RoutedEventArgs e)
     {
         _isRecordingHotkey = false;
+        if (Application.Current.MainWindow is MainWindow main) main.RegisterCurrentHotkey();
         var s = new AppSettings { HotkeyModifiers = _hotkeyModifiers, HotkeyKey = _hotkeyKey };
         TxtHotkey.Text = s.GetHotkeyDisplayString();
     }
@@ -396,6 +537,25 @@ public partial class SettingsWindow : Window
         TxtHotkey.Text = s.GetHotkeyDisplayString();
         _isRecordingHotkey = false;
         Keyboard.ClearFocus();
+    }
+
+    // ========== Auto Start ==========
+
+    private static void ApplyAutoStart(bool enable)
+    {
+        const string appName = "SnapLingo";
+        using var key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true);
+        if (key == null) return;
+
+        if (enable)
+        {
+            var exePath = Environment.ProcessPath ?? "";
+            key.SetValue(appName, $"\"{exePath}\"");
+        }
+        else
+        {
+            key.DeleteValue(appName, false);
+        }
     }
 
     // ========== Prompt ==========
@@ -448,16 +608,23 @@ public partial class SettingsWindow : Window
             ActiveOcrIndex = _activeOcrIndex,
             TranslationPrompt = TxtPrompt.Text,
             HotkeyModifiers = _hotkeyModifiers,
-            HotkeyKey = _hotkeyKey
+            HotkeyKey = _hotkeyKey,
+            AutoStart = ChkAutoStart.IsChecked == true
         };
         Result.Save();
-        DialogResult = true;
-        Close();
+        ApplyAutoStart(Result.AutoStart);
+        TxtSaveStatus.Text = "已保存 ✓";
+        _ = ClearSaveStatusAsync();
+    }
+
+    private async Task ClearSaveStatusAsync()
+    {
+        await Task.Delay(2000);
+        TxtSaveStatus.Text = "";
     }
 
     private void BtnCancel_Click(object sender, RoutedEventArgs e)
     {
-        DialogResult = false;
         Close();
     }
 }

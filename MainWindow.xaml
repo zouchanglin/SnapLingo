@@ -38,49 +38,52 @@
                        Fill="{StaticResource BorderBrush}"/>
 
             <!-- Main Content -->
-            <Grid Grid.Row="1" Margin="16,12,16,16">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="10"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <Grid Margin="16,12,16,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <!-- OCR Result Card -->
-                <Border Grid.Row="0" CornerRadius="8" MaxHeight="450"
-                        Background="{StaticResource CardBrush}"
-                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        <DockPanel Grid.Row="0" Margin="14,8,10,0">
-                            <TextBlock Text="识别结果" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
-                                       VerticalAlignment="Center"/>
-                            <Button x:Name="BtnCopyOcr" Content="复制"
-                                    Style="{StaticResource GhostButton}"
-                                    Click="BtnCopyOcr_Click"
-                                    HorizontalAlignment="Right" FontSize="11"/>
-                        </DockPanel>
-                        <TextBox Grid.Row="1" x:Name="TxtOcrResult"
-                                 Style="{StaticResource ModernTextBox}"
-                                 TextWrapping="Wrap" AcceptsReturn="False"
-                                 KeyDown="TxtOcrResult_KeyDown"
-                                 VerticalScrollBarVisibility="Auto"
-                                 BorderThickness="0" Margin="6,4,6,6"/>
-                    </Grid>
-                </Border>
+                    <!-- OCR Result Card -->
+                    <Border Grid.Row="0" CornerRadius="8" MaxHeight="450"
+                            Background="{StaticResource CardBrush}"
+                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <DockPanel Grid.Row="0" Margin="14,8,10,0">
+                                <TextBlock Text="识别结果" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center"/>
+                                <Button x:Name="BtnCopyOcr" Content="复制"
+                                        Style="{StaticResource GhostButton}"
+                                        Click="BtnCopyOcr_Click"
+                                        HorizontalAlignment="Right" FontSize="11"/>
+                            </DockPanel>
+                            <TextBox Grid.Row="1" x:Name="TxtOcrResult"
+                                     Style="{StaticResource ModernTextBox}"
+                                     TextWrapping="Wrap" AcceptsReturn="False"
+                                     KeyDown="TxtOcrResult_KeyDown"
+                                     VerticalScrollBarVisibility="Auto"
+                                     BorderThickness="0" Margin="6,4,6,6"/>
+                        </Grid>
+                    </Border>
 
-                <!-- Translation Results (vertical stack) -->
-                <ItemsControl Grid.Row="2" x:Name="TranslationCards">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </Grid>
+                    <!-- Translation Results (vertical stack) -->
+                    <ItemsControl Grid.Row="2" x:Name="TranslationCards">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
         </Grid>
     </Border>
 </Window>

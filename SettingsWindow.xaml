@@ -45,7 +45,7 @@
                     <RadioButton x:Name="NavModels" Content="模型配置" GroupName="Nav"
                                  Style="{StaticResource NavItemStyle}" IsChecked="True"
                                  Checked="Nav_Checked"/>
-                    <RadioButton x:Name="NavOcr" Content="OCR" GroupName="Nav"
+                    <RadioButton x:Name="NavOcr" Content="OCR服务" GroupName="Nav"
                                  Style="{StaticResource NavItemStyle}"
                                  Checked="Nav_Checked"/>
                     <RadioButton x:Name="NavPrompt" Content="提示词" GroupName="Nav"
@@ -196,8 +196,11 @@
                                           Margin="0,0,0,14" SelectionChanged="CmbOcrProvider_SelectionChanged">
                                     <ComboBoxItem Content="Windows 本地 OCR" Tag="Windows"/>
                                     <ComboBoxItem Content="火山引擎多语种 OCR" Tag="Volcengine"/>
+                                    <ComboBoxItem Content="百度 OCR" Tag="Baidu"/>
+                                    <ComboBoxItem Content="腾讯云 OCR" Tag="Tencent"/>
                                 </ComboBox>
 
+                                <!-- Volcengine -->
                                 <StackPanel x:Name="PanelVolcengineOcr">
                                     <TextBlock Text="Access Key ID" FontSize="11.5"
                                                Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,3"/>
@@ -250,6 +253,114 @@
                                         </Hyperlink>
                                     </TextBlock>
                                 </StackPanel>
+
+                                <!-- Baidu -->
+                                <StackPanel x:Name="PanelBaiduOcr" Visibility="Collapsed">
+                                    <TextBlock Text="API Key" FontSize="11.5"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <PasswordBox x:Name="PwdBaiduApiKey" FontSize="12.5"
+                                                     PasswordChanged="PwdBaiduApiKey_Changed"
+                                                     Padding="8,6" Background="{StaticResource CardBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        <TextBox x:Name="TxtBaiduApiKey" Style="{StaticResource ModernTextBox}"
+                                                 FontSize="12.5" Visibility="Collapsed"
+                                                 TextChanged="OcrField_TextChanged"/>
+                                        <Button Grid.Column="1" Content="&#x1F441;" FontSize="11"
+                                                Style="{StaticResource GhostButton}" Padding="6,4" Margin="4,0,0,0"
+                                                PreviewMouseLeftButtonDown="ShowBaiduApiKey_Down"
+                                                PreviewMouseLeftButtonUp="ShowBaiduApiKey_Up"/>
+                                    </Grid>
+
+                                    <TextBlock Text="Secret Key" FontSize="11.5"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <PasswordBox x:Name="PwdBaiduSecretKey" FontSize="12.5"
+                                                     PasswordChanged="PwdBaiduSecretKey_Changed"
+                                                     Padding="8,6" Background="{StaticResource CardBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        <TextBox x:Name="TxtBaiduSecretKey" Style="{StaticResource ModernTextBox}"
+                                                 FontSize="12.5" Visibility="Collapsed"
+                                                 TextChanged="OcrField_TextChanged"/>
+                                        <Button Grid.Column="1" Content="&#x1F441;" FontSize="11"
+                                                Style="{StaticResource GhostButton}" Padding="6,4" Margin="4,0,0,0"
+                                                PreviewMouseLeftButtonDown="ShowBaiduSecretKey_Down"
+                                                PreviewMouseLeftButtonUp="ShowBaiduSecretKey_Up"/>
+                                    </Grid>
+
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" LineHeight="20"
+                                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6">
+                                        需要在百度智能云创建文字识别应用，获取 API Key 和 Secret Key。
+                                    </TextBlock>
+                                    <TextBlock FontSize="12">
+                                        <Hyperlink Click="LinkBaidu_Click"
+                                                   Foreground="{StaticResource PrimaryBrush}">
+                                            获取 API Key
+                                        </Hyperlink>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Tencent -->
+                                <StackPanel x:Name="PanelTencentOcr" Visibility="Collapsed">
+                                    <TextBlock Text="SecretId（以 AKID 开头）" FontSize="11.5"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <PasswordBox x:Name="PwdTencentSecretId" FontSize="12.5"
+                                                     PasswordChanged="PwdTencentSecretId_Changed"
+                                                     Padding="8,6" Background="{StaticResource CardBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        <TextBox x:Name="TxtTencentSecretId" Style="{StaticResource ModernTextBox}"
+                                                 FontSize="12.5" Visibility="Collapsed"
+                                                 TextChanged="OcrField_TextChanged"/>
+                                        <Button Grid.Column="1" Content="&#x1F441;" FontSize="11"
+                                                Style="{StaticResource GhostButton}" Padding="6,4" Margin="4,0,0,0"
+                                                PreviewMouseLeftButtonDown="ShowTencentSecretId_Down"
+                                                PreviewMouseLeftButtonUp="ShowTencentSecretId_Up"/>
+                                    </Grid>
+
+                                    <TextBlock Text="SecretKey" FontSize="11.5"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <PasswordBox x:Name="PwdTencentSecretKey" FontSize="12.5"
+                                                     PasswordChanged="PwdTencentSecretKey_Changed"
+                                                     Padding="8,6" Background="{StaticResource CardBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        <TextBox x:Name="TxtTencentSecretKey" Style="{StaticResource ModernTextBox}"
+                                                 FontSize="12.5" Visibility="Collapsed"
+                                                 TextChanged="OcrField_TextChanged"/>
+                                        <Button Grid.Column="1" Content="&#x1F441;" FontSize="11"
+                                                Style="{StaticResource GhostButton}" Padding="6,4" Margin="4,0,0,0"
+                                                PreviewMouseLeftButtonDown="ShowTencentSecretKey_Down"
+                                                PreviewMouseLeftButtonUp="ShowTencentSecretKey_Up"/>
+                                    </Grid>
+
+                                    <TextBlock TextWrapping="Wrap" FontSize="12" LineHeight="20"
+                                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6">
+                                        需要在腾讯云开通文字识别 OCR 服务，获取 API 密钥。
+                                    </TextBlock>
+                                    <TextBlock FontSize="12">
+                                        <Hyperlink Click="LinkTencent_Click"
+                                                   Foreground="{StaticResource PrimaryBrush}">
+                                            获取 API Key
+                                        </Hyperlink>
+                                    </TextBlock>
+                                </StackPanel>
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -288,6 +399,13 @@
                                  LostFocus="TxtHotkey_LostFocus"
                                  Width="260" HorizontalAlignment="Left"
                                  Padding="14" FontWeight="Medium"/>
+
+                        <Separator Margin="0,24,0,16" Background="{StaticResource BorderBrush}"/>
+
+                        <TextBlock Text="启动选项" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                        <CheckBox x:Name="ChkAutoStart" Content="开机自启动" FontSize="12.5"
+                                  Foreground="{StaticResource TextSecondaryBrush}"/>
                     </StackPanel>
 
                     <!-- About Page -->
@@ -326,12 +444,17 @@
             <!-- Bottom buttons -->
             <Border Grid.Row="2" Padding="20,12" Background="{StaticResource SurfaceBrush}"
                     CornerRadius="0,0,8,8">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="取消" Style="{StaticResource GhostButton}"
-                            Click="BtnCancel_Click" Margin="0,0,10,0"/>
-                    <Button Content="保存" Style="{StaticResource PrimaryButton}"
-                            Click="BtnSave_Click"/>
-                </StackPanel>
+                <DockPanel>
+                    <TextBlock x:Name="TxtSaveStatus" FontSize="12"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               VerticalAlignment="Center" Margin="4,0,0,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
+                        <Button Content="取消" Style="{StaticResource GhostButton}"
+                                Click="BtnCancel_Click" Margin="0,0,10,0"/>
+                        <Button Content="保存" Style="{StaticResource PrimaryButton}"
+                                Click="BtnSave_Click"/>
+                    </StackPanel>
+                </DockPanel>
             </Border>
         </Grid>
     </Border>
