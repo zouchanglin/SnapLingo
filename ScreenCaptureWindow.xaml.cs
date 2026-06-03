@@ -64,6 +64,8 @@ public partial class ScreenCaptureWindow : Window
     {
         if (e.Key == Key.Escape)
         {
+            _screenSnapshot = null;
+            MagnifierImage.Source = null;
             DialogResult = false;
             Close();
         }
@@ -158,6 +160,8 @@ public partial class ScreenCaptureWindow : Window
         if (!_isSelecting) return;
         _isSelecting = false;
         OverlayCanvas.ReleaseMouseCapture();
+        _screenSnapshot = null;
+        MagnifierImage.Source = null;
 
         var currentPoint = e.GetPosition(OverlayCanvas);
         var x = Math.Min(_startPoint.X, currentPoint.X);

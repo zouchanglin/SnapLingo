@@ -206,9 +206,11 @@ public partial class MainWindow : Window
 
         if (result == true && captureWindow.CapturedImage != null)
         {
-            TxtStatus.Text = $"已截图 ({captureWindow.CapturedImage.PixelWidth}x{captureWindow.CapturedImage.PixelHeight})";
+            var image = captureWindow.CapturedImage;
+            TxtStatus.Text = $"已截图 ({image.PixelWidth}x{image.PixelHeight})";
 
-            var ocrText = await RunOcr(captureWindow.CapturedImage);
+            var ocrText = await RunOcr(image);
+            image = null;
 
             ShowAndActivate();
 
@@ -216,7 +218,6 @@ public partial class MainWindow : Window
             {
                 await RunAllTranslations(ocrText);
             }
-            return;
         }
     }
 

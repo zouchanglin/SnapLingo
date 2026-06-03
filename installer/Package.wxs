@@ -3,7 +3,7 @@
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
     <Package Name="SnapLingo"
              Manufacturer="zouchanglin"
-             Version="0.1.0"
+             Version="0.2.0"
              UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890">
 
         <MajorUpgrade DowngradeErrorMessage="A newer version of SnapLingo is already installed." />
@@ -31,6 +31,7 @@
 
         <Icon Id="AppIcon" SourceFile="$(var.PublishDir)\SnapLingo.exe" />
 
+        <WixVariable Id="WixUILicenseRtf" Value="installer\License.rtf" />
         <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
     </Package>
 
