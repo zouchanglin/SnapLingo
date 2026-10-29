@@ -10,6 +10,7 @@ public class ModelConfig
     public string Endpoint { get; set; } = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
     public string ApiKey { get; set; } = "";
     public string Model { get; set; } = "qwen-plus";
+    public bool EnableThinking { get; set; } = false;
 }
 
 public class OcrServiceConfig
@@ -148,6 +149,9 @@ public class AppSettings
         var json = JsonSerializer.Serialize(this, options);
         File.WriteAllText(SettingsFile, json);
     }
+
+    public AppSettings Clone() =>
+        JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(this))!;
 
     public string GetHotkeyDisplayString()
     {

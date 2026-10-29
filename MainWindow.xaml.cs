@@ -24,6 +24,17 @@ public partial class MainWindow : Window
     private readonly OcrService _ocrService = new();
     private AppSettings _settings = new();
     private Forms.NotifyIcon? _notifyIcon;
+    private CancellationTokenSource? _operation;
+    private bool _captureOpen;
+
+    private CancellationToken BeginOperation()
+    {
+        _operation?.Cancel();
+        _operation?.Dispose();
+        _operation = new CancellationTokenSource();
+        TranslationCards.Items.Clear();
+        return _operation.Token;
+    }
 
     public MainWindow()
     {
@@ -97,6 +108,7 @@ public partial class MainWindow : Window
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _operation?.Cancel();
         var handle = new WindowInteropHelper(this).Handle;
         UnregisterHotKey(handle, HOTKEY_ID);
         _hwndSource?.RemoveHook(WndProc);
@@ -151,7 +163,8 @@ public partial class MainWindow : Window
             if (!string.IsNullOrWhiteSpace(text))
             {
                 TxtStatus.Text = "正在翻译...";
-                await RunAllTranslations(text);
+                var token = BeginOperation();
+                await RunAllTranslations(text, _settings.Clone(), token);
             }
         }
     }
@@ -174,16 +187,13 @@ public partial class MainWindow : Window
         }
 
         _settingsWindow = new SettingsWindow(_settings);
-        _settingsWindow.Closed += (_, _) =>
+        _settingsWindow.SettingsSaved += (_, _) =>
         {
-            if (_settingsWindow.Result != null)
-            {
-                _settings = _settingsWindow.Result;
-                RegisterCurrentHotkey();
-                TxtStatus.Text = "设置已保存";
-            }
-            _settingsWindow = null;
+            _settings = _settingsWindow.Result!.Clone();
+            TxtStatus.Text = "设置已保存";
+            RegisterCurrentHotkey();
         };
+        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
     }
 
@@ -198,77 +208,65 @@ public partial class MainWindow : Window
 
     private async void StartCapture()
     {
-        Hide();
-        await Task.Delay(200);
-
-        var captureWindow = new ScreenCaptureWindow();
-        var result = captureWindow.ShowDialog();
-
-        if (result == true && captureWindow.CapturedImage != null)
-        {
-            var image = captureWindow.CapturedImage;
-            TxtStatus.Text = $"已截图 ({image.PixelWidth}x{image.PixelHeight})";
-
-            var ocrText = await RunOcr(image);
-            image = null;
-
-            ShowAndActivate();
-
-            if (!string.IsNullOrWhiteSpace(ocrText))
-            {
-                await RunAllTranslations(ocrText);
-            }
-        }
-    }
-
-    private async Task<string> RunOcr(BitmapSource image)
-    {
-        TxtOcrResult.Text = "";
-
+        if (_captureOpen) return;
+        _captureOpen = true;
+        var token = BeginOperation();
+        var settings = _settings.Clone();
+        TxtOcrResult.Clear();
         try
         {
-            var text = await _ocrService.RecognizeAsync(image, _settings);
+            Hide();
+            await Task.Delay(200, token);
+            var captureWindow = new ScreenCaptureWindow();
+            var result = captureWindow.ShowDialog();
+            _captureOpen = false;
+            if (result != true || captureWindow.CapturedImage == null) return;
+
+            var text = await _ocrService.RecognizeAsync(captureWindow.CapturedImage, settings);
+            if (token.IsCancellationRequested) return;
             TxtOcrResult.Text = text;
-            TxtStatus.Text = string.IsNullOrWhiteSpace(text)
-                ? "未识别到文字"
-                : "识别完成，正在翻译...";
-            return text;
+            ShowAndActivate();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                TxtStatus.Text = "未识别到文字";
+                return;
+            }
+            await RunAllTranslations(text, settings, token);
         }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex)
         {
-            TxtOcrResult.Text = $"识别失败：{ex.Message}";
-            TxtStatus.Text = "OCR 出错";
-            return string.Empty;
+            if (token.IsCancellationRequested) return;
+            TxtStatus.Text = $"截图或识别失败：{ex.Message}";
+            ShowAndActivate();
+        }
+        finally
+        {
+            // Only the dialog phase owns this guard; a newer capture may be open now.
+            if (!token.IsCancellationRequested) _captureOpen = false;
         }
     }
 
-    private async Task RunAllTranslations(string text)
+    private async Task RunAllTranslations(string text, AppSettings settings, CancellationToken token)
     {
+        if (token.IsCancellationRequested) return;
         TranslationCards.Items.Clear();
-
-        if (_settings.Models.Count == 0)
+        if (settings.Models.Count == 0)
         {
             TxtStatus.Text = "未配置翻译模型，请在设置中添加";
             return;
         }
-
         TxtStatus.Text = "正在翻译...";
-
         var tasks = new List<Task>();
-
-        foreach (var model in _settings.Models)
+        foreach (var model in settings.Models)
         {
             var card = CreateTranslationCard(model.Name);
             TranslationCards.Items.Add(card);
-
-            var textBox = (TextBox)((Grid)((Border)card).Child).Children
-                .OfType<TextBox>().First();
-
-            tasks.Add(RunSingleTranslation(model, text, textBox));
+            var textBox = ((Grid)card.Child).Children.OfType<TextBox>().First();
+            tasks.Add(RunSingleTranslation(model, text, settings.TranslationPrompt, textBox, token));
         }
-
         await Task.WhenAll(tasks);
-        TxtStatus.Text = "就绪";
+        if (!token.IsCancellationRequested) TxtStatus.Text = "就绪";
     }
 
     private Border CreateTranslationCard(string modelName)
@@ -336,14 +334,15 @@ public partial class MainWindow : Window
         return border;
     }
 
-    private async Task RunSingleTranslation(ModelConfig config, string text, TextBox targetTextBox)
+    private async Task RunSingleTranslation(ModelConfig config, string text, string prompt, TextBox targetTextBox, CancellationToken token)
     {
         try
         {
-            await foreach (var chunk in TranslationService.TranslateStreamAsync(config, text, _settings.TranslationPrompt).ConfigureAwait(false))
+            await foreach (var chunk in TranslationService.TranslateStreamAsync(config, text, prompt, token).ConfigureAwait(false))
             {
                 await Dispatcher.InvokeAsync(() =>
                 {
+                    if (token.IsCancellationRequested) return;
                     targetTextBox.Text += chunk;
                     targetTextBox.ScrollToEnd();
                 });
@@ -353,6 +352,7 @@ public partial class MainWindow : Window
         {
             await Dispatcher.InvokeAsync(() =>
             {
+                if (token.IsCancellationRequested) return;
                 targetTextBox.Text += $"\n[翻译出错：{ex.Message}]";
             });
         }

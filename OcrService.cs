@@ -73,9 +73,9 @@ public class OcrService
     private async Task<string> RecognizeWithWindowsAsync(BitmapSource bitmapSource)
     {
         if (_engine == null)
-            return "[OCR 引擎不可用，请安装语言包]";
+            throw new InvalidOperationException("OCR 引擎不可用，请安装中文或英文语言包");
 
-        var softwareBitmap = await ConvertToSoftwareBitmap(bitmapSource);
+        using var softwareBitmap = await ConvertToSoftwareBitmap(bitmapSource);
         var result = await _engine.RecognizeAsync(softwareBitmap);
 
         return string.Join(Environment.NewLine, result.Lines.Select(l => l.Text));

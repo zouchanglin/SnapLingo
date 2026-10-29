@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Runtime.InteropServices;
+using System.Windows.Interop;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -13,6 +15,9 @@ public partial class ScreenCaptureWindow : Window
     private const int MagnifierWidth = 150;
     private const int MagnifierHeight = 93;
 
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int width, int height, uint flags);
+    private readonly System.Drawing.Rectangle _desktop = System.Windows.Forms.SystemInformation.VirtualScreen;
     private Point _startPoint;
     private bool _isSelecting;
     private BitmapSource? _screenSnapshot;
@@ -22,6 +27,11 @@ public partial class ScreenCaptureWindow : Window
     public ScreenCaptureWindow()
     {
         InitializeComponent();
+        CaptureScreenSnapshot();
+        DesktopImage.Source = _screenSnapshot;
+        SourceInitialized += (_, _) =>
+            SetWindowPos(new WindowInteropHelper(this).Handle, new IntPtr(-1),
+                _desktop.Left, _desktop.Top, _desktop.Width, _desktop.Height, 0x0040);
         MouseLeftButtonDown += OnMouseLeftButtonDown;
         MouseMove += OnMouseMove;
         MouseLeftButtonUp += OnMouseLeftButtonUp;
@@ -32,18 +42,17 @@ public partial class ScreenCaptureWindow : Window
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         UpdateOverlay(0, 0, 0, 0);
-        CaptureScreenSnapshot();
     }
 
     private void CaptureScreenSnapshot()
     {
         var dpiScale = VisualTreeHelper.GetDpi(this);
-        var screenW = (int)(SystemParameters.VirtualScreenWidth * dpiScale.DpiScaleX);
-        var screenH = (int)(SystemParameters.VirtualScreenHeight * dpiScale.DpiScaleY);
+        var screenW = _desktop.Width;
+        var screenH = _desktop.Height;
 
         using var bmp = new System.Drawing.Bitmap(screenW, screenH);
         using var g = System.Drawing.Graphics.FromImage(bmp);
-        g.CopyFromScreen(0, 0, 0, 0, new System.Drawing.Size(screenW, screenH));
+        g.CopyFromScreen(_desktop.Left, _desktop.Top, 0, 0, new System.Drawing.Size(screenW, screenH));
 
         var bmpData = bmp.LockBits(
             new System.Drawing.Rectangle(0, 0, screenW, screenH),
@@ -112,8 +121,8 @@ public partial class ScreenCaptureWindow : Window
     {
         if (_screenSnapshot == null) return;
 
-        var screenW = SystemParameters.VirtualScreenWidth;
-        var screenH = SystemParameters.VirtualScreenHeight;
+        var screenW = OverlayCanvas.ActualWidth;
+        var screenH = OverlayCanvas.ActualHeight;
 
         double magX = pos.X + 30;
         double magY = pos.Y - MagnifierHeight - 30;
@@ -125,8 +134,8 @@ public partial class ScreenCaptureWindow : Window
         Canvas.SetTop(MagnifierCanvas, magY);
 
         var dpiScale = VisualTreeHelper.GetDpi(this);
-        var pixelX = (int)(pos.X * dpiScale.DpiScaleX);
-        var pixelY = (int)(pos.Y * dpiScale.DpiScaleY);
+        var pixelX = (int)(pos.X * _screenSnapshot.PixelWidth / OverlayCanvas.ActualWidth);
+        var pixelY = (int)(pos.Y * _screenSnapshot.PixelHeight / OverlayCanvas.ActualHeight);
 
         var srcW = MagnifierWidth / MagnifierZoom;
         var srcH = MagnifierHeight / MagnifierZoom;
@@ -146,8 +155,8 @@ public partial class ScreenCaptureWindow : Window
 
     private void UpdateOverlay(double x, double y, double width, double height)
     {
-        var screenWidth = SystemParameters.VirtualScreenWidth;
-        var screenHeight = SystemParameters.VirtualScreenHeight;
+        var screenWidth = OverlayCanvas.ActualWidth;
+        var screenHeight = OverlayCanvas.ActualHeight;
 
         var fullRect = new RectangleGeometry(new Rect(0, 0, screenWidth, screenHeight));
         var holeRect = new RectangleGeometry(new Rect(x, y, width, height));
@@ -160,7 +169,6 @@ public partial class ScreenCaptureWindow : Window
         if (!_isSelecting) return;
         _isSelecting = false;
         OverlayCanvas.ReleaseMouseCapture();
-        _screenSnapshot = null;
         MagnifierImage.Source = null;
 
         var currentPoint = e.GetPosition(OverlayCanvas);
@@ -183,34 +191,14 @@ public partial class ScreenCaptureWindow : Window
 
     private void CaptureScreen(double x, double y, double width, double height)
     {
-        var dpiScale = VisualTreeHelper.GetDpi(this);
-        var scaleX = dpiScale.DpiScaleX;
-        var scaleY = dpiScale.DpiScaleY;
-
-        var pixelX = (int)(x * scaleX);
-        var pixelY = (int)(y * scaleY);
-        var pixelWidth = (int)(width * scaleX);
-        var pixelHeight = (int)(height * scaleY);
-
-        using var bitmap = new System.Drawing.Bitmap(pixelWidth, pixelHeight);
-        using var graphics = System.Drawing.Graphics.FromImage(bitmap);
-        graphics.CopyFromScreen(pixelX, pixelY, 0, 0, new System.Drawing.Size(pixelWidth, pixelHeight));
-
-        var bitmapData = bitmap.LockBits(
-            new System.Drawing.Rectangle(0, 0, pixelWidth, pixelHeight),
-            System.Drawing.Imaging.ImageLockMode.ReadOnly,
-            System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-        CapturedImage = BitmapSource.Create(
-            pixelWidth, pixelHeight,
-            dpiScale.PixelsPerInchX, dpiScale.PixelsPerInchY,
-            PixelFormats.Bgra32,
-            null,
-            bitmapData.Scan0,
-            pixelHeight * bitmapData.Stride,
-            bitmapData.Stride);
-
-        bitmap.UnlockBits(bitmapData);
+        if (_screenSnapshot == null) throw new InvalidOperationException("屏幕快照不可用");
+        var scaleX = _screenSnapshot.PixelWidth / OverlayCanvas.ActualWidth;
+        var scaleY = _screenSnapshot.PixelHeight / OverlayCanvas.ActualHeight;
+        var left = Math.Clamp((int)Math.Floor(x * scaleX), 0, _screenSnapshot.PixelWidth - 1);
+        var top = Math.Clamp((int)Math.Floor(y * scaleY), 0, _screenSnapshot.PixelHeight - 1);
+        var right = Math.Clamp((int)Math.Ceiling((x + width) * scaleX), left + 1, _screenSnapshot.PixelWidth);
+        var bottom = Math.Clamp((int)Math.Ceiling((y + height) * scaleY), top + 1, _screenSnapshot.PixelHeight);
+        CapturedImage = new CroppedBitmap(_screenSnapshot, new Int32Rect(left, top, right - left, bottom - top));
         CapturedImage.Freeze();
     }
 }

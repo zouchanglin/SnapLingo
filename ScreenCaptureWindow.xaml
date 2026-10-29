@@ -7,9 +7,12 @@
         Topmost="True"
         ShowInTaskbar="False"
         ResizeMode="NoResize"
-        WindowState="Maximized"
+        WindowStartupLocation="Manual"
         Cursor="None">
     <Canvas x:Name="OverlayCanvas" Background="Transparent">
+        <Image x:Name="DesktopImage" IsHitTestVisible="False" Stretch="Fill"
+               Width="{Binding ActualWidth, ElementName=OverlayCanvas}"
+               Height="{Binding ActualHeight, ElementName=OverlayCanvas}"/>
         <!-- Dark overlay with hole for selection -->
         <Path x:Name="OverlayPath" Fill="#80000000" IsHitTestVisible="False"/>
         <!-- Selection border -->

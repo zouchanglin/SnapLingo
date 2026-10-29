@@ -66,9 +66,22 @@ OCR 识别完成后，多模型并发翻译，对比不同结果：
 
 ## 构建
 
+开发只需安装 .NET 8 SDK（运行时不能用于编译），不要求安装 Visual Studio。
+
 ```bash
+dotnet build SnapLingo.csproj -c Release
+dotnet run --project SnapLingo.csproj
 dotnet publish -c Release -r win-x64 --no-self-contained
 ```
+
+在 Windows 上运行回归检查：
+
+```bash
+dotnet run --project tests/SnapLingo.Regression/SnapLingo.Regression.csproj -c Release
+```
+
+检查覆盖配置删除与编辑、配置快照隔离、OCR 不可用、截图裁剪及流式请求取消。
+多显示器实机验收时，应分别检查副屏位于左侧/上方、不同缩放比例以及跨屏选区。
 
 ## 开源协议
 

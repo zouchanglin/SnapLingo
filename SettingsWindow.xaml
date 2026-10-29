@@ -138,6 +138,12 @@
                                            Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,3"/>
                                 <TextBox x:Name="TxtModelModel" Style="{StaticResource ModernTextBox}"
                                          FontSize="12.5" Margin="0,0,0,0" TextChanged="ModelField_TextChanged"/>
+                                <CheckBox x:Name="ChkEnableThinking" Content="启用思考模式"
+                                          Margin="0,14,0,4" FontSize="12.5"
+                                          Checked="ThinkingMode_Changed" Unchecked="ThinkingMode_Changed"/>
+                                <TextBlock Text="默认关闭，适合快速翻译。支持 DeepSeek 和兼容思考开关的模型。"
+                                           TextWrapping="Wrap" FontSize="11"
+                                           Foreground="{StaticResource TextMutedBrush}"/>
                             </StackPanel>
                         </Grid>
                     </Grid>
@@ -415,7 +421,7 @@
                         <TextBlock Text="SnapLingo" FontSize="20" FontWeight="Bold"
                                    Foreground="{StaticResource TextPrimaryBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                        <TextBlock Text="v0.1.0" FontSize="11"
+                        <TextBlock Text="v0.2.1" FontSize="11"
                                    Foreground="{StaticResource TextMutedBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,16"/>
 

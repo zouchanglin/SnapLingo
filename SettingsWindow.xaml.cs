@@ -17,6 +17,7 @@ public partial class SettingsWindow : Window
     private bool _suppressSync;
 
     public AppSettings? Result { get; private set; }
+    public event EventHandler? SettingsSaved;
 
     public SettingsWindow(AppSettings settings)
     {
@@ -27,7 +28,8 @@ public partial class SettingsWindow : Window
             Name = m.Name,
             Endpoint = m.Endpoint,
             ApiKey = m.ApiKey,
-            Model = m.Model
+            Model = m.Model,
+            EnableThinking = m.EnableThinking
         }).ToList();
 
         _ocrServices = settings.OcrServices.Select(o => new OcrServiceConfig
@@ -77,6 +79,11 @@ public partial class SettingsWindow : Window
     private void LstModels_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_suppressSync) return;
+        LoadSelectedModel();
+    }
+
+    private void LoadSelectedModel()
+    {
         var idx = LstModels.SelectedIndex;
         if (idx < 0 || idx >= _models.Count)
         {
@@ -91,6 +98,7 @@ public partial class SettingsWindow : Window
         PwdModelApiKey.Password = m.ApiKey;
         TxtModelApiKey.Text = m.ApiKey;
         TxtModelModel.Text = m.Model;
+        ChkEnableThinking.IsChecked = m.EnableThinking;
         _suppressSync = false;
     }
 
@@ -102,6 +110,7 @@ public partial class SettingsWindow : Window
         PwdModelApiKey.Password = "";
         TxtModelApiKey.Text = "";
         TxtModelModel.Text = "";
+        ChkEnableThinking.IsChecked = false;
         _suppressSync = false;
     }
 
@@ -119,7 +128,16 @@ public partial class SettingsWindow : Window
 
         _suppressSync = true;
         LstModels.Items[idx] = string.IsNullOrWhiteSpace(m.Name) ? "(未命名)" : m.Name;
+        LstModels.SelectedIndex = idx;
         _suppressSync = false;
+    }
+
+    private void ThinkingMode_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressSync) return;
+        var idx = LstModels.SelectedIndex;
+        if (idx >= 0 && idx < _models.Count)
+            _models[idx].EnableThinking = ChkEnableThinking.IsChecked == true;
     }
 
     private void PwdModelApiKey_Changed(object sender, RoutedEventArgs e)
@@ -164,6 +182,7 @@ public partial class SettingsWindow : Window
             LstModels.SelectedIndex = Math.Min(idx, _models.Count - 1);
         else
             ClearModelFields();
+        LoadSelectedModel();
     }
 
     // ========== OCR Management ==========
@@ -187,6 +206,11 @@ public partial class SettingsWindow : Window
     private void LstOcr_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_suppressSync) return;
+        LoadSelectedOcr();
+    }
+
+    private void LoadSelectedOcr()
+    {
         var idx = LstOcr.SelectedIndex;
         if (idx < 0 || idx >= _ocrServices.Count)
         {
@@ -464,6 +488,7 @@ public partial class SettingsWindow : Window
             LstOcr.SelectedIndex = Math.Min(idx, _ocrServices.Count - 1);
         else
             ClearOcrFields();
+        LoadSelectedOcr();
     }
 
     private void BtnSetActiveOcr_Click(object sender, RoutedEventArgs e)
@@ -601,7 +626,7 @@ public partial class SettingsWindow : Window
 
     private void BtnSave_Click(object sender, RoutedEventArgs e)
     {
-        Result = new AppSettings
+        var snapshot = new AppSettings
         {
             Models = _models,
             OcrServices = _ocrServices,
@@ -610,9 +635,19 @@ public partial class SettingsWindow : Window
             HotkeyModifiers = _hotkeyModifiers,
             HotkeyKey = _hotkeyKey,
             AutoStart = ChkAutoStart.IsChecked == true
-        };
-        Result.Save();
-        ApplyAutoStart(Result.AutoStart);
+        }.Clone();
+        try
+        {
+            snapshot.Save();
+            ApplyAutoStart(snapshot.AutoStart);
+        }
+        catch (Exception ex)
+        {
+            TxtSaveStatus.Text = $"保存失败：{ex.Message}";
+            return;
+        }
+        Result = snapshot;
+        SettingsSaved?.Invoke(this, EventArgs.Empty);
         TxtSaveStatus.Text = "已保存 ✓";
         _ = ClearSaveStatusAsync();
     }
