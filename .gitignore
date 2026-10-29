@@ -29,6 +29,10 @@ publish/
 ## WiX build cache
 .wix/
 
+## Native C++ / Qt
+build-native/
+aqtinstall.log
+
 ## Claude Code / OpenSpec
 .claude/
 openspec/

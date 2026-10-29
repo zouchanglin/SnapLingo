@@ -1,0 +1,18 @@
+SnapLingo 0.3.0 — C++ / Qt portable edition
+
+Extract the entire ZIP into a writable folder and run SnapLingo.exe.
+No .NET runtime, Qt installation or administrator privileges are required.
+Requires Windows 10 version 1809 or later / Windows 11, x64.
+
+Ctrl+Shift+A: select a screen region. Escape or right-click cancels.
+Use the tray menu to open settings or exit. Closing the result window hides it.
+Enter translates edited OCR text; Shift+Enter inserts a new line.
+
+Settings use %APPDATA%\SnapLingo\settings.json (compatible with the WPF version).
+Before the first save, existing settings are backed up to settings.json.pre-qt.bak.
+Do not run both versions at the same time: their global hotkeys will conflict.
+Windows OCR requires an installed OCR language pack. Cloud OCR needs your own credentials.
+Models and OCR credentials remain on your computer; requests go to configured providers.
+
+Qt is dynamically linked. Keep the DLLs and plugin folders together with the EXE.
+Licenses, notices and corresponding-source information are in licenses/.
