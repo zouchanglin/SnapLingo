@@ -61,39 +61,6 @@ Windows 本地 OCR 需要系统安装相应语言包；云服务需要自行配�
 - Windows 11 上使用系统 Mica 背景，Windows 10 使用 Fluent 绘制的回退背景
 - Windows OCR 需要对应语言包；云 OCR / 翻译需要自备 API 凭据
 
-## 构建与打包
-
-开发依赖：Visual Studio 2022 C++ Build Tools（含 Windows SDK）、Qt Base 6.8.3 MSVC x64。
-本机 Qt 安装目录为 `D:\Program Files\QT\6.8.3\msvc2022_64`，Build Tools 为 `D:\BuildTools`。
-这两项仅开发者需要，使用者只需便携 ZIP。
-
-```powershell
-./build.ps1
-./package.ps1
-```
-
-脚本支持 `-QtRoot` 和 `-BuildTools` 自定义路径。输出目录已存在时，传入不同的 `-OutputName`，避免覆盖旧包。
-
-构建脚本在仓库根目录执行 CMake 配置、编译和 `ctest` 回归检查，产物位于 `build/`。
-界面库以源码形式放在 `third_party/fluentqt`（Fluent-Qt 1.11.4，仅 Widgets 核心），随主程序静态链接，不需要额外 DLL。
-默认回归检查使用本地模拟 HTTP 服务，不调用云 API、不读取用户密钥。
-显式设置 `SNAPLINGO_TEST_API_KEY` 可运行 `native_tests.exe liveDeepSeek`；
-设置 `SNAPLINGO_DESKTOP_TEST=1` 可运行 `native_tests.exe desktopCaptureCancel` 验证桌面选区启动和取消。
-便携程序的 `--smoke-test --report <path>` 会检查 TLS、本地 OCR 和显示器映射，生成不含凭据的 JSON 报告。
-界面截图可用 `build/SnapLingo.exe --preview-main <png>`、`--preview-settings <png> <tab>`（`tab` 从 0 开始）或 `--preview-history <png>` 重新生成。
-`--dark` / `--light` 可在生成截图或临时启动时强制指定主题。
-
-Qt 动态库、Windows 平台/系统 TLS 插件和正式可再分发的 MSVC CRT 随包提供。
-不包含 WebEngine、QML、软件 OpenGL 或独立 OCR 模型。许可证及 Qt 对应源码地址见 `licenses/`，Fluent-Qt 许可见 `third_party/fluentqt/LICENSE`。
-
-## 验证范围
-
-已覆盖配置迁移/快照隔离、删除编辑项、思考请求参数、SSE 分片与 UTF-8、请求取消、HTTP 错误、云 OCR 响应解析、选区坐标，以及历史记录落盘、重载、清理与条数上限。
-主题设置已覆盖 `Theme` 字段读写与非法值回退、外观页选项、运行中切换主题（Fluent 配色与应用调色板同步刷新），以及原生窗框与主题一致（含切换后新弹出的窗口）。
-设置页导航顺序与图标由回归用例锁定（“关于”始终最后），保存设置 / 设为当前 OCR / 切换主题分别以 Fluent Toast 反馈，均已在真实窗口流程中验证。
-三家云 OCR 的真实鉴权仍需要各自的有效账户验证；本机只有一个显示器，混合 DPI 多屏布局需要相应设备验收。
-已实测 DeepSeek 关闭思考的流式翻译、Windows OCR、桌面选区启动/Esc 取消，以及解压后在仅保留系统 PATH 环境下启动（Schannel TLS 和显示器映射正常）。
-
 ## 开源协议
 
 [MIT License](LICENSE)。Fluent-Qt 采用 MIT 协议，其捆绑字体与图标的第三方声明见 `third_party/fluentqt/THIRD_PARTY_NOTICES.md`。
