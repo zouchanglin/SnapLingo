@@ -1,7 +1,7 @@
 param(
     [string]$QtRoot = 'D:\Program Files\QT\6.8.3\msvc2022_64',
     [string]$BuildTools = 'D:\BuildTools',
-    [string]$OutputName = 'SnapLingo-v0.3.0-win-x64-portable'
+    [string]$OutputName = 'SnapLingo-v0.0.1-win-x64-portable'
 )
 $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot

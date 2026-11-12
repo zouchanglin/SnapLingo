@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(SnapLingo VERSION 0.3.0 LANGUAGES CXX)
+project(SnapLingo VERSION 0.0.1 LANGUAGES CXX)
 if(DEFINED SNAPLINGO_MSVC_INCLUDE_PREFIX)
   # CMake may misdecode /showIncludes when only the Chinese MSVC language pack is installed.
   set(CMAKE_CL_SHOWINCLUDES_PREFIX "${SNAPLINGO_MSVC_INCLUDE_PREFIX}")

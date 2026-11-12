@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     fluent::prepareHighDpiApplication();
     QApplication app(argc, argv);
     app.setApplicationName("SnapLingo");
-    app.setApplicationVersion("0.3.0");
+    app.setApplicationVersion("0.0.1");
     app.setQuitOnLastWindowClosed(false);
     app.setWindowIcon(QIcon(":/app.ico"));
     QSslSocket::setActiveBackend("schannel");

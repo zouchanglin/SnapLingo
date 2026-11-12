@@ -1,4 +1,4 @@
-SnapLingo 0.3.0 — C++ / Qt / Fluent-Qt portable edition
+SnapLingo 0.0.1 — C++ / Qt / Fluent-Qt portable edition
 
 Extract the entire ZIP into a writable folder and run SnapLingo.exe.
 No .NET runtime, Qt installation or administrator privileges are required.

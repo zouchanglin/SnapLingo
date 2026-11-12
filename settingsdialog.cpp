@@ -595,7 +595,7 @@ SettingsDialog::SettingsDialog(const Settings &settings, QWidget *parent, Histor
     appIcon->setAlignment(Qt::AlignCenter);
     auto *appTitle = makeLabel("SnapLingo", Typography::FontRole::Title);
     appTitle->setAlignment(Qt::AlignCenter);
-    auto *version = makeLabel("版本 0.3.0 · C++20 / Qt 6 / Fluent-Qt", Typography::FontRole::Body,
+    auto *version = makeLabel("版本 0.0.1 · C++20 / Qt 6 / Fluent-Qt", Typography::FontRole::Body,
                               Label::TextColorRole::Secondary);
     version->setAlignment(Qt::AlignCenter);
     auto *tagline = makeLabel("截图 → OCR → 多模型流式翻译", Typography::FontRole::Body,
