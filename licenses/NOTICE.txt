@@ -1,0 +1,27 @@
+SnapLingo Qt portable edition
+
+SnapLingo application code: MIT, see SnapLingo-MIT.txt in the packaged application.
+
+Qt Base 6.8.3 (Core, Gui, Widgets, Network, Concurrent and selected plugins)
+Copyright (C) The Qt Company Ltd. and other contributors.
+Distributed as unmodified, dynamically linked Qt libraries under LGPL-3.0-only.
+The LGPL-3.0-only.txt and GPL-3.0-only.txt license texts accompany this notice.
+Users may replace the Qt libraries with compatible modified builds. Reverse
+engineering for debugging modifications to these libraries is not restricted.
+
+Corresponding Qt source, build files and third-party source:
+https://download.qt.io/archive/qt/6.8/6.8.3/submodules/qtbase-everywhere-src-6.8.3.zip
+https://github.com/qt/qtbase/tree/v6.8.3
+Official binary source revision (from Qt's SBOM):
+c07c2d5a527a644d36e7853d55132ae38921682f
+Build documentation: https://doc.qt.io/qt-6.8/windows-building.html
+
+Qt's bundled third-party components and copyright/license declarations are
+listed in qtbase-6.8.3.spdx.json. The accompanying license texts are copied from
+the Qt Base v6.8.3 LICENSES directory. Not all listed optional components are
+present in this minimal portable package.
+
+Microsoft Visual C++ runtime DLLs are copied from the Build Tools official
+VC/Redist/MSVC/x64/Microsoft.VC143.CRT redistributable directory. These files
+remain Microsoft copyrighted components and are not covered by SnapLingo's MIT
+license. The Universal C Runtime is supplied by the supported Windows OS.
